@@ -2,6 +2,7 @@ package com.example.exercise_camera
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -20,6 +21,7 @@ import java.net.URI
 import java.nio.file.FileStore
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.jar.Manifest
 
 
 class MainActivity : AppCompatActivity() {
@@ -27,6 +29,9 @@ class MainActivity : AppCompatActivity() {
     val SELECT_FILE_FROM_STORAGE = 33
 
     val OPEN_CAMERA_REQUEST_CODE = 23
+
+    val REQUEST_WRITE_READ_STORAGE = 201
+
     lateinit var currentPhotoPath : String
     lateinit var photoFile: File
 
@@ -39,6 +44,7 @@ class MainActivity : AppCompatActivity() {
         val selectFileIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
 //        val selectFileIntent = Intent(Intent.ACTION_PICK, )
         startActivityForResult(selectFileIntent, SELECT_FILE_FROM_STORAGE)
+        checkStoragePermission()
     }
 
     fun openCamera(view: View){
@@ -48,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         val photoURI = FileProvider.getUriForFile(this,"com.example.exercise_camera.fileprovider", photoFile)
         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
         startActivityForResult(cameraIntent,OPEN_CAMERA_REQUEST_CODE)
-
+        checkStoragePermission()
     }
 
     @Throws(IOException::class)
@@ -96,5 +102,18 @@ class MainActivity : AppCompatActivity() {
             originalPath = cursor.getString(columnIndex)
         }
         return originalPath
+    }
+    fun checkStoragePermission(){
+        if(checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED)
+            requestPermissions(arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
+            REQUEST_WRITE_READ_STORAGE)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 }
